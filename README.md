@@ -1,0 +1,2 @@
+此项目原型是基于慕课网的java高并发系列。
+基于springmvc+spring+mybatis的项目
