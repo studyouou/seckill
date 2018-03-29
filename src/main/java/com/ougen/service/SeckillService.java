@@ -4,6 +4,7 @@ import com.ougen.Entity.Seckill;
 import com.ougen.Entity.SuccessKilled;
 import com.ougen.dao.SeckillDao;
 import com.ougen.dao.SuccessSeckillDao;
+import com.ougen.dao.cache.RedisDao;
 import com.ougen.dto.Exposer;
 import com.ougen.dto.SeckillExecution;
 import com.ougen.infoenum.InfoEnum;
@@ -39,8 +40,11 @@ public class SeckillService implements ServiceIpml {
     @Autowired
     private SuccessSeckillDao successSeckillDao;
 
+    @Autowired
+    private RedisDao redisDao;
+
     public Seckill queryById(long seckillId) {
-        return seckillDao.queryById(seckillId);
+        return queryByRedis(seckillId);
     }
 
     public List<Seckill> queryAll(int offset, int limit) {
@@ -49,7 +53,7 @@ public class SeckillService implements ServiceIpml {
     @Transactional
     public Exposer exportSeckillUrl(long seckillId) {
         Long now=System.currentTimeMillis();
-        Seckill seckill=seckillDao.queryById(seckillId);
+        Seckill seckill=queryByRedis(seckillId);
         Date start=seckill.getStartTime();
         Date end=seckill.getEndTime();
         if (now<start.getTime() || now>end.getTime()){
@@ -61,6 +65,14 @@ public class SeckillService implements ServiceIpml {
     private String getMD5(long seckillId){
         String md5=seckillId+"/"+string;
         return   DigestUtils.md5DigestAsHex(md5.getBytes());
+    }
+    private Seckill queryByRedis(long seckillId){
+        Seckill seckill=redisDao.getSeckill(seckillId);
+        if (seckill==null){
+            seckill=seckillDao.queryById(seckillId);
+            redisDao.putSeckill(seckill);
+        }
+        return  seckill;
     }
     @Transactional
     public SeckillExecution executeSeckill(long seckillId, long userPhone, String md5) throws SeckillException, RepeatKillException, SeckillCloseException {

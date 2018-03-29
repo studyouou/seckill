@@ -28,4 +28,8 @@
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
         <property name="basePackage" value="com.ougen.dao"></property>
     </bean>
+    <bean id="redisDao" class="com.ougen.dao.cache.RedisDao">
+        <constructor-arg index="0" value="192.168.1.203"></constructor-arg>
+        <constructor-arg index="1" value="6379"></constructor-arg>
+    </bean>
 </beans>
